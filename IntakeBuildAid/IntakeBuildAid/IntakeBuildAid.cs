@@ -11,26 +11,10 @@ namespace IntakeBuildAid
 	{
 		private EditorLogic _editor;
 
-		#region Logging
-
-		private static void DebugLog( string msg, params object[] p )
-		{
-#if DEBUG
-			msg = "SF: " + msg;
-			print( string.Format( msg, p ) );
-#endif
-		}
-
-		private static void Log( string msg, params object[] p )
-		{
-			msg = "SF: " + msg;
-			print( string.Format( msg, p ) );
-		}
-		#endregion Logging
 
 		public void Awake()
 		{
-			DebugLog( "IntakeBuildAid awake" );
+			Utils.DebugLog( "IntakeBuildAid awake" );
 			_editor = EditorLogic.fetch;
 			InitStyles(); // init onscreen messages
 		}
@@ -42,26 +26,25 @@ namespace IntakeBuildAid
 				return;
 			}
 
-			bool altPressed = Input.GetKey( KeyCode.LeftAlt ) || Input.GetKey( KeyCode.RightAlt ) || Input.GetKey( KeyCode.AltGr );
+			// bool altPressed = Input.GetKey( KeyCode.LeftAlt ) || Input.GetKey( KeyCode.RightAlt ) || Input.GetKey( KeyCode.AltGr );
 
-			if ( altPressed && Input.GetKeyDown( KeyCode.F ) ) // alt-F triggers
+			if ( Input.GetKeyDown( KeyCode.F7 ) ) // key triggers
 			{
 				// order intakes desceding by intake area
 				Queue<Part> intakeQueue = new Queue<Part>( _editor.ship.Parts.Where( x => x.Modules.OfType<ModuleResourceIntake>().Any() )
 					.OrderByDescending( x => x.Modules.OfType<ModuleResourceIntake>().First().area ) ); // queue is easier to handle when distributing items to engines - this makes sure we can only handle a part once
 
-				Log( "Intakes found: {0}", string.Join( ", ", intakeQueue.Select( x => x.partInfo.name + ": " + x.Modules.OfType<ModuleResourceIntake>().First().area ).ToArray() ) );
+				Utils.Log( "Intakes found: {0}", string.Join( ", ", intakeQueue.Select( x => x.partInfo.name + ": " + x.Modules.OfType<ModuleResourceIntake>().First().area ).ToArray() ) );
 
 				//Log( "Intakes found by type: {0}", string.Join( ", ", intakesPerType.Select( x => x.Key + " : " + x.Value.Count ).ToArray() ) );
 
 				List<WeightedPartList> totalPartList = new List<WeightedPartList>();
 				// so far all jets have intakeair ratio of 15, so we treat jets, turbos and rapiers alike
-				// find engines my ModuleEngines and ModuleEnginesFX module with intakeair and liquidfuel propellants
+				
+				// TODO: handle engines grouped by type, so far its by placement order
 				foreach ( Part part in _editor.ship.parts )
 				{
-					// rapier needs special handling due to ModuleEnginesFX
-					if ( ( part.Modules.OfType<ModuleEnginesFX>().Any( x => x.propellants.Any( y => y.name == "IntakeAir" ) && x.propellants.Any( y => y.name == "LiquidFuel" ) ) ) // RAPIERS use ModuleEngineFX
-						|| ( part.Modules.OfType<ModuleEngines>().Any( x => x.propellants.Any( y => y.name == "IntakeAir" ) && x.propellants.Any( y => y.name == "LiquidFuel" ) ) ) ) // turbojets and basic jets use ModuleEngine
+					if ( Utils.GetPartType ( part ) == PartType.AirBreatherEngine )
 					{
 						WeightedPartList wpl = new WeightedPartList();
 						wpl.AddPart( part );
@@ -69,16 +52,16 @@ namespace IntakeBuildAid
 					}
 				}
 
-				Log( "Jets found: {0}", string.Join( ", ", totalPartList.Select( x => x.PartList.First().partInfo.name ).ToArray() ) );
+				Utils.Log( "Jets found: {0}", string.Join( ", ", totalPartList.Select( x => x.PartList.First().partInfo.name ).ToArray() ) );
 
 				// some sanity checks
 				if ( intakeQueue.Count > 0 && totalPartList.Count > 0 )
 				{
 					// strip ship from intakes and jets
 					_editor.ship.parts.RemoveAll( x => intakeQueue.Contains( x ) );
-					DebugLog( "removed intakes temporarily" );
+					Utils.DebugLog( "removed intakes temporarily" );
 					_editor.ship.parts.RemoveAll( x => totalPartList.Select( y => y.PartList.First() ).Contains( x ) );
-					DebugLog( "removed jets temporarily" );
+					Utils.DebugLog( "removed jets temporarily" );
 
 					int intakeCount = intakeQueue.Count;
 					for ( int i = 0; i < intakeCount; i++ )
@@ -94,16 +77,16 @@ namespace IntakeBuildAid
 					{
 						partList.PartList.Reverse();
 						_editor.ship.parts.AddRange( partList.PartList ); // add parts for engine and its intakes back to ship
-						Log( "Intake/engine set: {0}, total intake area: {1}", string.Join( ", ", partList.PartList.Select( x => x.name ).ToArray() ), partList.IntakeAreaSum );
+						Utils.Log( "Intake/engine set: {0}, total intake area: {1}", string.Join( ", ", partList.PartList.Select( x => x.name ).ToArray() ), partList.IntakeAreaSum );
 						sb.AppendLine( string.Format( "{0}, total intake area: {1}", string.Join( ", ", partList.PartList.Select( x => x.name ).ToArray() ), partList.IntakeAreaSum ) );
 					}
 
-					Log( "Finished intakes - jets balance" );
+					Utils.Log( "Finished intakes - jets balance" );
 					OSDMessage( sb.ToString(), intakeCount );
 				}
 				else
 				{
-					Log("There are either no intakes or no engines");
+					Utils.Log("There are either no intakes or no engines");
 					OSDMessage( "There are either no intakes or no engines", 2 );
 				}
 			}
@@ -140,7 +123,7 @@ namespace IntakeBuildAid
 		{
 			messageCutoff = Time.time + delay;
 			messageText = message;
-			DebugLog( string.Format( "messageCutoff = {0}, messageText = {1}", messageCutoff.ToString(), messageText ) );
+			Utils.DebugLog( messageText );
 		}
 
 		private void DisplayOSD()

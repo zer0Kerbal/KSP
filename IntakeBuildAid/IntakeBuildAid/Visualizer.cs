@@ -11,38 +11,27 @@ namespace IntakeBuildAid
 	{
 		private EditorLogic _editor;
 		private static Material _material; // shader to highlight stuff
-		private static Color _selectedIntakeColor = new Color( 0f, 0.7f, 0.7f, 1f );
-		private static Color _selectedEngineIntakeColor = new Color( 0f, 0.5f, 0.5f, 1f );
-		private static Color _selectedEngineColor = new Color( 1f, 0.5f, 0f, 1f );
-		private static Color _selectedIntakeEngineColor = new Color( 0.8f, 0.5f, 0f, 1f );
+		// highlight colors
+		private static Color _selectedIntakeColor = new Color( 0f, 0.4f, 1f, 0.8f );
+		private static Color _selectedEngineIntakeColor = new Color( 0f, 0.8f, 1f, 0.8f );
+		private static Color _selectedEngineColor = new Color( 1f, 0.5f, 0f, 0.8f );
+		private static Color _selectedIntakeEngineColor = new Color( 1f, 0.8f, 0f, 0.8f );
 		
-
-		private Dictionary<Part, List<SavedMaterial>> _managedParts;
+		// used for highlighting intakes and engines
+		private static Dictionary<Part, List<SavedMaterial>> _managedParts;
 		private static Part _mouseOverPart;
-		
-		#region Logging
 
-		private static void DebugLog( string msg, params object[] p )
-		{
-#if DEBUG
-			msg = "SF: " + msg;
-			print( string.Format( msg, p ) );
-#endif
-		}
-
-		private static void Log( string msg, params object[] p )
-		{
-			msg = "SF: " + msg;
-			print( string.Format( msg, p ) );
-		}
-		#endregion Logging
+		// used to manually select and assign intakes to engines
+		private static List<Part> _manualAssignedList;
 
 		public void Start()
 		{
 			_material = new Material( global::IntakeBuildAid.Resource.OutlineShaderContents );
 			_managedParts = new Dictionary<Part, List<SavedMaterial>>();
+			_manualAssignedList = new List<Part>();
 			GameEvents.onPartAttach.Add( OnPartAttach );
-			DebugLog( "Visualizer start" );
+			LoadSettings();
+			Utils.DebugLog( "Visualizer started" );
 		}
 
 		public void Awake()
@@ -53,26 +42,40 @@ namespace IntakeBuildAid
 			}
 		}
 
+		private void LoadSettings()
+		{
+			ConfigNode config = ConfigNode.Load( KSPUtil.ApplicationRootPath + "GameData/IntakeBuildAid/settings.cfg" );
+			if ( config == null )
+			{
+				Utils.Log( "Failed to load config." );
+			}
+			else
+			{
+				// TODO load settings
+			}
+		}
+
 		public void OnPartAttach( GameEvents.HostTargetAction<Part, Part> eventData )
 		{
-			if ( PartIsIntake( eventData.host ) || PartIsEngine( eventData.host ) )
+			PartType partType = Utils.GetPartType( eventData.host );
+			if ( partType == PartType.AirBreatherEngine || partType  == PartType.Intake )
 			{
 				eventData.host.AddOnMouseEnter( OnMouseEnter );
 				eventData.host.AddOnMouseExit( OnMouseExit );
-				DebugLog( "Added events for part: {0}", eventData.host.name );
+				Utils.DebugLog( "Added events for part: {0}", eventData.host.name );
 			}
 		}
 
 		private void OnMouseExit( Part p )
 		{
 			_mouseOverPart = null;
-			DebugLog( "MouseOverPart removed");
+			Utils.DebugLog( "MouseOverPart removed");
 		}
 
 		private void OnMouseEnter( Part p )
 		{
 			_mouseOverPart = p;
-			DebugLog( "MouseOverPart set: {0}", p.name );
+			Utils.DebugLog( "MouseOverPart set: {0}", p.name );
 		}
 
 		private void Update()
@@ -83,63 +86,123 @@ namespace IntakeBuildAid
 				{
 					// mouse is over a part
 					// check if part is intake
-					if ( PartIsIntake(_mouseOverPart ) )
+					PartType partType = Utils.GetPartType( _mouseOverPart );
+					if ( partType == PartType.Intake )
 					{
-						DebugLog( "Intake found: {0}", _mouseOverPart.name );
-						// set color
-						ColorPart( _mouseOverPart, _selectedIntakeColor );
-
+						Utils.DebugLog( "Intake found: {0}", _mouseOverPart.name );
+						// find engine and set color
 						Part intakeEngine = FindEngineOfIntake( _mouseOverPart );
 						if ( intakeEngine != null )
 						{
+							ColorPart( _mouseOverPart, _selectedIntakeColor );
 							ColorPart( intakeEngine, _selectedIntakeEngineColor );
 						}
 						return;
 					}
 					// check if part is engine
-					else if ( PartIsEngine( _mouseOverPart ) )
+					else if ( partType == PartType.AirBreatherEngine )
 					{
-						DebugLog( "Engine found: {0}", _mouseOverPart.name );
-						ColorPart( _mouseOverPart, _selectedEngineColor );
-
+						Utils.DebugLog( "Engine found: {0}", _mouseOverPart.name );
 						List<Part> engineIntakes = FindIntakesOfEngine( _mouseOverPart );
+						Utils.DebugLog( "Intakes found: {0}", string.Join( ", ", engineIntakes.Select( x => x.name ).ToArray() ) );
 						foreach ( Part part in engineIntakes )
 						{
+							ColorPart( _mouseOverPart, _selectedEngineColor );
 							ColorPart( part, _selectedEngineIntakeColor );
 						}
 						return;
 					}
-					DebugLog( "Part is no intake or engine" );
+					//Utils.DebugLog( "Part is no intake or engine" );
 					return;
 				}
 				else
 				{
-					DebugLog( "MouseOverPart is null" );
+					//Utils.DebugLog( "MouseOverPart is null" );
 				}
 			}
-			// reset highlighting
-			if ( _managedParts != null && _managedParts.Count > 0 )
+			else if ( Input.GetKey( KeyCode.F6 ) && _mouseOverPart != null )
 			{
-				foreach(KeyValuePair<Part, List<SavedMaterial>> kvp in _managedParts)
+				// get type of part
+				PartType partType = Utils.GetPartType( _mouseOverPart );
+				if ( partType == PartType.Intake )
 				{
-					List<SavedMaterial> savedMaterials = kvp.Value;
-					if ( savedMaterials.Count == 0 )
-						continue;
-
-					Renderer[] renderers = kvp.Key.FindModelComponents<Renderer>();
-
-					if ( renderers.Length > 0 )
+					if ( !_manualAssignedList.Contains( _mouseOverPart ) )
 					{
-						for ( int i = 0; i < renderers.Length; ++i )
-						{
-							renderers[i].sharedMaterial.shader = savedMaterials[i].Shader;
-							renderers[i].sharedMaterial.SetColor( "_Color", savedMaterials[i].Color );
-						}
+						// add part to manually assigned list
+						_manualAssignedList.Add( _mouseOverPart );
+						ColorPart( _mouseOverPart, _selectedIntakeColor );
+						Utils.DebugLog( "Part {0} added to manual assigned list.", _mouseOverPart.name );
+					}
+					else
+					{
+						// remove part from manually assigned list
+						_manualAssignedList.Remove( _mouseOverPart );
+						ResetColor( _mouseOverPart );
+						Utils.DebugLog( "Part {0} removed from manual assigned list.", _mouseOverPart.name );
 					}
 				}
-				_managedParts.Clear();
-				DebugLog( "Resetted managed parts" );
+				else if ( partType == PartType.AirBreatherEngine )
+				{
+					// end manual assignment once an engine is selected
+					// add engine to manual list
+					_manualAssignedList.Add( _mouseOverPart );
+
+					// now turn off all coloring
+					foreach ( Part part in _manualAssignedList )
+					{
+						ResetColor( part );
+					}
+					// remove these parts from the ship
+					_editor.ship.Parts.RemoveAll( x => _manualAssignedList.Contains( x ) );
+					// re-add parts to ship, these now are in a proper order
+					_editor.ship.Parts.AddRange( _manualAssignedList );
+					Utils.Log( "Finished manual intake-engine assignment: {0}", string.Join( ", ", _manualAssignedList.Select( x => x.name ).ToArray() ) );
+					_manualAssignedList.Clear(); // reset list
+				}
 			}
+			else if ( Input.GetKey( KeyCode.F8 ) )
+			{
+				// dump some logs
+				if ( _managedParts != null && _managedParts.Count > 0 )
+				{
+					Utils.DebugLog( "ManagedParts: {0}", string.Join(", ", _managedParts.Select( x => x.Key.name ).ToArray() ) );
+				}
+				if ( _manualAssignedList != null && _manualAssignedList.Count > 0 )
+				{
+					Utils.DebugLog( "ManualList: {0}", string.Join( ", ", _manualAssignedList.Select( x => x.name ).ToArray() ) );
+				}
+			}
+
+			// reset highlighting of not manually assigned parts
+			if ( _managedParts != null && _managedParts.Count > 0 )
+			{
+				foreach ( KeyValuePair<Part, List<SavedMaterial>> kvp in _managedParts )
+				{
+					if ( _manualAssignedList.Contains( kvp.Key ) )
+					{
+						// we handle coloring of manually assigned intakes somewhere else
+						continue;
+					}
+					ResetColor( kvp.Key );
+				}
+				_managedParts.Clear();
+				//Utils.DebugLog( "Resetted managed parts" );
+			}
+		}
+
+		public void OnDestroy()
+		{
+			if ( _managedParts != null && _managedParts.Count > 0 )
+			{
+				foreach ( KeyValuePair<Part, List<SavedMaterial>> kvp in _managedParts )
+				{
+					ResetColor( kvp.Key );
+				}
+			}
+			_managedParts.Clear();
+			_manualAssignedList.Clear();
+			Utils.DebugLog( "OnDestroy" );
+			Destroy( this );
 		}
 
 		private void ColorPart( Part part, Color color )
@@ -159,47 +222,46 @@ namespace IntakeBuildAid
 					}
 
 					_managedParts.Add( part, savedMaterials );
-					DebugLog( "Part colored: {0}. Color: {1}", part.name, color.ToString() );
+					Utils.DebugLog( "Part colored: {0}. Color: {1}", part.name, color.ToString() );
 				}
 			}
 		}
 
-		private bool PartIsIntake(Part part)
+		private void ResetColor( Part part )
 		{
-			if ( part.Modules.OfType<ModuleResourceIntake>() != null
-						&& part.Modules.OfType<ModuleResourceIntake>().Count() > 0 )
+			if ( !_managedParts.ContainsKey( part ) )
 			{
-				return true;
+				return;
 			}
-			else
+			List<SavedMaterial> savedMaterials = _managedParts[part];
+			if ( savedMaterials.Count == 0 )
 			{
-				return false;
+				_managedParts.Remove( part );
+				return;
 			}
-		}
 
-		private bool PartIsEngine( Part part )
-		{
-			if ( ( part.Modules.OfType<ModuleEnginesFX>().Any( x => x.propellants.Any( y => y.name == "IntakeAir" ) && x.propellants.Any( y => y.name == "LiquidFuel" ) ) ) // RAPIERS use ModuleEngineFX
-						|| ( part.Modules.OfType<ModuleEngines>().Any( x => x.propellants.Any( y => y.name == "IntakeAir" ) && x.propellants.Any( y => y.name == "LiquidFuel" ) ) ) ) // turbojets and basic jets use ModuleEngine
+			Renderer[] renderers = part.FindModelComponents<Renderer>();
+
+			if ( renderers.Length > 0 )
 			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+				for ( int i = 0; i < renderers.Length; ++i )
+				{
+					renderers[i].sharedMaterial.shader = savedMaterials[i].Shader;
+					renderers[i].sharedMaterial.SetColor( "_Color", savedMaterials[i].Color );
+				}
+			}			
 		}
 
 		private Part FindEngineOfIntake( Part intakePart )
 		{
-			if ( !PartIsIntake( intakePart ) )
+			if ( Utils.GetPartType( intakePart ) != PartType.Intake )
 			{
 				return null;
 			}
 			int startIndex = _editor.ship.Parts.IndexOf( intakePart );
 			for ( int i = startIndex; i >= 0; i-- )
 			{
-				if ( PartIsEngine( _editor.ship.Parts[i] ) )
+				if ( Utils.GetPartType( _editor.ship.Parts[i] ) == PartType.AirBreatherEngine )
 				{
 					return _editor.ship.Parts[i];
 				}
@@ -219,32 +281,36 @@ namespace IntakeBuildAid
 
 		private List<Part> FindIntakesOfEngine( Part enginePart )
 		{
-			if ( !PartIsEngine( enginePart ) )
+			if ( Utils.GetPartType( enginePart ) != PartType.AirBreatherEngine )
 			{
+				Utils.DebugLog("Part is no engine, cant find its intakes.");
 				return null;
 			}
 			List<Part> intakes = new List<Part>();
-			int startIndex = _editor.ship.Parts.IndexOf( enginePart );
-			for ( int i = startIndex; i >= 0; i-- )
+			int startIndex = _editor.ship.Parts.IndexOf( enginePart ); // find index of engine in the part list
+			for ( int i = startIndex - 1; i >= 0; i-- ) // iterate backwards from the engine, find all intakes
 			{
-				if ( PartIsEngine( _editor.ship.Parts[i] )
-					&& enginePart != _editor.ship.Parts[i] )
+				PartType partType = Utils.GetPartType( _editor.ship.Parts[i] );
+				if ( partType == PartType.AirBreatherEngine )
 				{
-					break; // done
+					Utils.DebugLog( "FindIntakesOfEngine at next engine: {0}", _editor.ship.Parts[i].name );
+					break; // we found another engine, done
 				}
-				else if ( PartIsIntake( _editor.ship.Parts[i] ) )
+				else if ( partType == PartType.Intake )
 				{
-					intakes.Add( _editor.ship.Parts[i] );
+					intakes.Add( _editor.ship.Parts[i] ); // add found intake to the list
 				}
 				
-				// handle loop overflow
+				// handle loop overflow, if there is no engine at the end of the partlist, there might be some more intakes that belong to the engine at the end of the list.
 				if ( i == 0 )
 				{
-					i = _editor.ship.Parts.Count - 1;
+					i = _editor.ship.Parts.Count - 1; // start at the end of the list again
+					Utils.DebugLog( "FindIntakesOfEngine reset loop" );
 				}
-				if ( i == startIndex + 1 )
+				if ( i == startIndex )
 				{
-					break; // no intakes found
+					Utils.DebugLog( "FindIntakesOfEngine done" );
+					break; // we are through the list, abort
 				}
 			}
 			return intakes;
