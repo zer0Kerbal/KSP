@@ -33,14 +33,12 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <HintPath>D:\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="UnityEngine">
       <HintPath>D:\Kerbal Space Program\KSP_Data\Managed\UnityEngine.dll</HintPath>
-      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -62,10 +60,15 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="settings.cfg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R /C /E "$(TargetDir)*.*" "D:\Kerbal Space Program\GameData\IntakeBuildAid"</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y /R /C /E "$(TargetDir)IntakeBuildAid.dll" "D:\Kerbal Space Program\GameData\IntakeBuildAid"
+xcopy /Y /R /C /E "$(TargetDir)readme.txt" "D:\Kerbal Space Program\GameData\IntakeBuildAid"
+xcopy /Y /R /C /E "$(TargetDir)settings.cfg" "D:\Kerbal Space Program\GameData\IntakeBuildAid"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
