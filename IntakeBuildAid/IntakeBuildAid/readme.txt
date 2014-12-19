@@ -4,7 +4,7 @@ IntakeBuildAid addin for Kerbal Space Program
 KSP Version: 0.90
 by Robert Hofhauser aka LordFjord
 
-Dev forum thread: http://forum.kerbalspaceprogram.com/threads/100782-0-25-WIP-Synced-Jet-Flameouts-0-2
+Dev forum thread: http://forum.kerbalspaceprogram.com/threads/100782-0-90-WIP-Intake-Build-Aid-0-4
 Source: https://github.com/LordFjord/KSP/tree/master/IntakeBuildAid
 
 This mod reorders the intakes and jet engines of a craft loaded in the SPH in a way that jet flameouts are (almost) syncronized, hence a deadly spin when exiting the athmosphere is a lot less likely.
