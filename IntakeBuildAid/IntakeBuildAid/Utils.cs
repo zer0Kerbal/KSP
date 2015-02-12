@@ -8,27 +8,6 @@ namespace IntakeBuildAid
 {
 	public class Utils
 	{
-		public static PartType GetPartType( Part part )
-		{
-			// find engines by ModuleEngines and ModuleEnginesFX module with intakeair and liquidfuel propellants
-			if ( ( part.Modules.OfType<ModuleEnginesFX>().Any( x => x.propellants.Any( y => y.name == "IntakeAir" ) && x.propellants.Any( y => y.name == "LiquidFuel" ) ) ) // RAPIERS use ModuleEngineFX
-						|| ( part.Modules.OfType<ModuleEngines>().Any( x => x.propellants.Any( y => y.name == "IntakeAir" ) && x.propellants.Any( y => y.name == "LiquidFuel" ) ) ) ) // turbojets and basic jets use ModuleEngine
-			{
-				return PartType.AirBreatherEngine;
-			}
-			// find intakes by resource intakeair
-			else if ( part.Modules.OfType<ModuleResourceIntake>() != null
-						&& part.Modules.OfType<ModuleResourceIntake>().Count() > 0 )
-			{
-				return PartType.Intake;
-			}
-			else
-			{
-				return PartType.SomethingElse;
-			}
-		}
-
-
 		#region Logging
 
 		public static void DebugLog( string msg, params object[] p )
@@ -47,13 +26,5 @@ namespace IntakeBuildAid
 			//print( string.Format( msg, p ) );
 		}
 		#endregion Logging
-
-	}
-
-	public enum PartType
-	{
-		SomethingElse = 0,
-		Intake = 1,
-		AirBreatherEngine = 2
 	}
 }

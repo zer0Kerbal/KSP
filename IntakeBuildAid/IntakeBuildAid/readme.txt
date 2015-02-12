@@ -18,12 +18,13 @@ If the numbers of intakes and their intake areas simply do not match up, the mod
 Installation:
 Copy the files to your KSP\GameData folder.
 Files:
+	GameData\IntakeBuildAid\icons\Toolbar.png
 	GameData\IntakeBuildAid\IntakeBuildAid.dll
 	GameData\IntakeBuildAid\settings.cfg
 	GameData\IntakeBuildAid\readme.txt
 
 Usage:
-The mod now has 3 "modes"
+The mod has 3 "modes"
 - point the mouse over an engine or intake and press F6:
   - in case of an intake: the engine that this intakes provied air primarily is highlighted
   - in case of an engine: all intakes that provide air primarily to this engine are highlighted
@@ -35,14 +36,23 @@ The mod now has 3 "modes"
 
 Warnings and stuff:
 If for any reason, the mod messes up your vessel or does not work as expected, please send me a copy of your ksp.log (in your KSP directory) and the vessel's craft file that it messed up. Have I mentioned to backup your craft files often?
+If you see something obviously messed up by the mod, do not save your vessel.
 
 Thanks and stuff:
-- Kashua for finding out this stuff and (beside many others) teaching me how to SSTO
+- Kasuha for finding out this stuff and (beside many others) teaching me how to SSTO
 - xEvilReeperx for letting me use his shader logic
-- MachXXV for me taking his awesome mod Editor Extensions as a template to get me started with KSP modding. Sorry dude, you got selected by random ;) The code to display a message in the editor is also from you.
+- MachXXV for me taking his awesome mod Editor Extensions as a template to get me started with KSP modding. Sorry dude, you got selected by random ;)
 - Squad for making KSP
 
 version history:
+0.5 (2015.02.12)
+----------------
+Added toolbar button to toggle the GUI
+GUI with a button that does the same as pressing F7 -> autobalance engines and intakes
+GUI lists all engines with their total assigned intake area and the specific intakes which feed them
+Modded engines that are engines and intakes in one are now supported - as long as they use the stock IntakeAir resource - for example KAX D-25 Radial Engines or Karbonite KLF-150R Radial Jet Engines
+Lots of code cleanup
+
 0.4 (2014.12.19)
 ----------------
 Updated for KSP version 0.90

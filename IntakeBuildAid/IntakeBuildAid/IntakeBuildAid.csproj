@@ -48,11 +48,15 @@
       <DependentUpon>Resource.resx</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Types.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="IntakeBuildAid.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OutlineShaderContents.txt" />
+    <Content Include="icons\Toolbar.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="readme.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -68,7 +72,8 @@
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R /C /E "$(TargetDir)IntakeBuildAid.dll" "D:\Kerbal Space Program\GameData\IntakeBuildAid"
 xcopy /Y /R /C /E "$(TargetDir)readme.txt" "D:\Kerbal Space Program\GameData\IntakeBuildAid"
-xcopy /Y /R /C /E "$(TargetDir)settings.cfg" "D:\Kerbal Space Program\GameData\IntakeBuildAid"</PostBuildEvent>
+xcopy /Y /R /C /E "$(TargetDir)settings.cfg" "D:\Kerbal Space Program\GameData\IntakeBuildAid"
+xcopy /Y /R /C /E "$(TargetDir)Icons" "D:\Kerbal Space Program\GameData\IntakeBuildAid\Icons"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
