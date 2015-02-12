@@ -2,16 +2,18 @@
 IntakeBuildAid addin for Kerbal Space Program
 --------------------------------------------
 KSP Version: 0.90
+IBA Version: 0.5
 by Robert Hofhauser aka LordFjord
 
-Dev forum thread: http://forum.kerbalspaceprogram.com/threads/100782-0-90-WIP-Intake-Build-Aid-0-4
+Mod release forum thread: http://forum.kerbalspaceprogram.com/threads/104704-0-90-Intake-Build-Aid
+Mod dev forum thread: http://forum.kerbalspaceprogram.com/threads/100782-0-90-WIP-Intake-Build-Aid-0-4
 Source: https://github.com/LordFjord/KSP/tree/master/IntakeBuildAid
 
-This mod reorders the intakes and jet engines of a craft loaded in the SPH in a way that jet flameouts are (almost) syncronized, hence a deadly spin when exiting the athmosphere is a lot less likely.
+This mod reorders the intakes and jet engines of a craft loaded in the SPH/VAB in a way that jet flameouts are (almost) syncronized, hence a deadly spin when exiting the athmosphere is a lot less likely.
 In case of multiple jet engines, it allows them to run at higher altitudes befor any of them suffers a flame-out.
 To understand this in detail: please read http://forum.kerbalspaceprogram.com/threads/64362-Fuel-Flow-Rules-%280-24-2%29 
 How this works:
-It takes all intakes and jets from the craft and adds them again in a specified order. It does not alter links between parts, parts or any other game behaviour at all. It saves you the hassle to build your SSTOs in a specific way to prevent early jet flameouts.
+It takes all intakes and jets from the craft and adds them again in a specified order. It does not alter links between parts, parts themselves or any other game behaviour at all. It saves you the hassle to build your SSTOs in a specific way to prevent early jet flameouts.
 Now you can just build ahead in any order, press the magic keys and your jets will flame out synced. More or less at least.
 If the numbers of intakes and their intake areas simply do not match up, the mod will try to do its best to still assign the intakes to the engines as equally as possible. This makes the vessel still perform better than doing nothing regarding this matter.
 

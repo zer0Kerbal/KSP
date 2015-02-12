@@ -87,6 +87,11 @@ namespace IntakeBuildAid
 			}
 		}
 
+		public void OnPartDetach( GameEvents.HostTargetAction<Part, Part> eventData )
+		{
+			ResetAllColors();
+		}
+
 		private void OnMouseExit( Part p )
 		{
 			_mouseOverPart = null;
@@ -345,7 +350,6 @@ namespace IntakeBuildAid
 					}
 
 					Renderer[] renderers = part.FindModelComponents<Renderer>();
-
 					if ( renderers.Length > 0 )
 					{
 						for ( int i = 0; i < renderers.Length; ++i )
@@ -353,6 +357,11 @@ namespace IntakeBuildAid
 							renderers[i].sharedMaterial.shader = savedMaterials[i].Shader;
 							renderers[i].sharedMaterial.SetColor( "_Color", savedMaterials[i].Color );
 						}
+					}
+
+					if ( _managedParts.ContainsKey( part ) )
+					{
+						_managedParts.Remove( part );
 					}
 				}
 			}
