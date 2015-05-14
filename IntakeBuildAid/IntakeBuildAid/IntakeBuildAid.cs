@@ -48,7 +48,8 @@ namespace IntakeBuildAid
 			_editor = EditorLogic.fetch;
 
 			// init GUI
-			GameEvents.onGUIApplicationLauncherReady.Add( OnGUIApplicationLauncherReady );
+			//GameEvents.onGUIApplicationLauncherReady.Add( OnGUIApplicationLauncherReady );
+			OnGUIApplicationLauncherReady();
 			_guiRect = new Rect( ( Screen.width ) / 4, Screen.height / 2, 300, 100 );
 			_guiVisible = false;
 			Utils.DebugLog( "IntakeBuildAid Start() finished" );
@@ -238,9 +239,14 @@ namespace IntakeBuildAid
 			_managedParts.Clear();
 			_manualAssignedList.Clear();
 
-			ApplicationLauncher.Instance.RemoveModApplication( _launcherButton );
-			GameEvents.onGUIApplicationLauncherReady.Remove( OnGUIApplicationLauncherReady );
-			Destroy( this );
+			//TheDog, 03.05.2015: FIXED for KSP 1.0.2
+			if (_launcherButton != null)
+			{
+				ApplicationLauncher.Instance.RemoveModApplication( _launcherButton );
+				//GameEvents.onGUIApplicationLauncherReady.Remove( OnGUIApplicationLauncherReady );
+				Destroy( this );
+				_launcherButton = null;
+			}
 		}
 
 		#region Helpers
@@ -386,6 +392,11 @@ namespace IntakeBuildAid
 
 		private void OnGUIApplicationLauncherReady()
 		{
+			//TheDog, 03.05.2015: FIXED for KSP 1.0.2
+			if (_launcherButton != null) {
+				return;
+			}
+
 			// Create the button in the KSP AppLauncher
 			Utils.DebugLog( "Adding toolbar icon" );
 			_launcherButton = ApplicationLauncher.Instance.AddModApplication( ToggleGUI, ToggleGUI,
@@ -393,6 +404,9 @@ namespace IntakeBuildAid
 			null, null,
 			ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB,
 			GameDatabase.Instance.GetTexture( "IntakeBuildAid/icons/Toolbar", false ) );
+
+			_launcherButton.toggleButton.startTrue = true; //TheDog, 03.05.2015: FIXED for KSP 1.0.2
+			//GameEvents.onGUIApplicationLauncherReady.Remove (OnGUIApplicationLauncherReady);
 		}
 
 		private Part FindEngineOfIntake( Part intakePart )
