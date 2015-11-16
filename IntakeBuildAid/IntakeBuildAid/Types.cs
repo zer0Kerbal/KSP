@@ -14,7 +14,7 @@ namespace IntakeBuildAid
 
 	public class WeightedPartList
 	{
-		public float IntakeAreaSum { get; set; }
+		public double IntakeAreaSum { get; set; }
 		public List<Part> PartList { get; set; }
 		public WeightedPartList()
 		{
